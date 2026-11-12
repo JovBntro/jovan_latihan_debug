@@ -21,13 +21,16 @@
             <div class="card-header-custom d-flex align-items-center gap-2">
                 <i class="bi {{ isset($mahasiswa) ? 'bi-pencil-square' : 'bi-person-plus-fill' }} text-primary fs-5"></i>
                 <span class="fw-semibold text-dark">
-                    Form Edit Mahasiswa
+                    {{ isset($mahasiswa) ? 'Form Edit Mahasiswa' : 'Form Tambah Mahasiswa' }}
                 </span>
             </div>
             <div class="card-body p-4">
-                <form method="POST" action="{{route('mahasiswa.update', $mahasiswa->id)}}">
+                <!-- PERBAIKAN DI SINI: Action dan Method dinamis (bisa untuk store / update) -->
+                <form method="POST" action="{{ isset($mahasiswa) ? route('mahasiswa.update', $mahasiswa->id) : route('mahasiswa.store') }}">
                     @csrf
-                    @method('PUT')
+                    @if(isset($mahasiswa))
+                        @method('PUT')
+                    @endif
 
                     <div class="mb-4">
                         <label for="NIM" class="form-label">NIM <span class="text-danger">*</span></label>
@@ -39,7 +42,7 @@
                                 name="NIM"
                                 class="form-control @error('NIM') is-invalid @enderror"
                                 value="{{ old('NIM', $mahasiswa->NIM ?? '') }}"
-                                placeholder="Contoh: 230101001"
+                                placeholder="Contoh: 24110005"
                                 required
                                 autofocus
                             >
@@ -94,7 +97,7 @@
                             @endforeach
                         </div>
                         @error('jurusan')
-                            <div class="text-danger small mt-1">{{ $message }}</div>
+                            <div class="text-danger small mt-1">{{ $message}}</div>
                         @enderror
                     </div>
 
