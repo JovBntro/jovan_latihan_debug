@@ -69,34 +69,37 @@ class AbsensiController extends Controller
      * Store or update attendance records from the create/ubah page.
      */
     public function store(Request $request)
-    {
-        $request->validate([
-            'tanggal_absensi' => 'required|date',
-            'matakuliah' => 'required|exists:matakuliah,id',
-            'status' => 'nullable|required|array',
-            'status.*' => 'nullable|in:HAIS',
-        ]);
+        {
+            $request->validate([
+                'tanggal_absensi' => 'required|date',
+                'matakuliah_id'   => 'required|exists:matakuliah,id', // Sesuaikan dengan nama input dan nama tabel (matakuliahs / matakuliah)
+                'status'          => 'nullable|array',
+                'status.*'        => 'nullable|in:H,A,I,S',       // Diubah dari 'HAIS' menjadi 'H,A,I,S'
+            ]);
 
-        $statuses = $request->input('status', []);
+            $statuses = $request->input('status', []);
 
-        foreach ($statuses as $mahasiswaId => $statusAbsen) {
-            if (in_array($statusAbsen, ['H', 'A', 'I', 'S'])) {
-                Absensi::Create(
-                    [
-                        'mahasiswa_id' => (string) $mahasiswaId,
-                        'matakuliah_id' => (string) $request->matakuliah,
-                        'tanggal_absensi' => $request->tanggal_absensi,
-                        'status_absen' => $statusAbsen,
-                    ]
-                );
+            foreach ($statuses as $mahasiswaId => $statusAbsen) {
+                if (in_array($statusAbsen, ['H', 'A', 'I', 'S'])) {
+                    // Gunakan updateOrCreate agar data ter-update jika sudah ada, atau terbuat baru jika belum ada
+                    Absensi::updateOrCreate(
+                        [
+                            'mahasiswa_id'      => (string) $mahasiswaId,
+                            'matakuliah_id'     => (string) $request->matakuliah_id,
+                            'tanggal_absensi'   => $request->tanggal_absensi,
+                        ],
+                        [
+                            'status_absen'      => $statusAbsen,
+                        ]
+                    );
+                }
             }
-        }
 
-        return redirect()
-            ->route('absensi.index', [
-                'tanggal_absensi' => $request->tanggal_absensi,
-                'matakuliah_id' => $request->matakuliah_id,
-            ])
-            ->with('success', 'Data kehadiran berhasil disimpan.');
-    }
+            return redirect()
+                ->route('absensi.index', [
+                    'tanggal_absensi' => $request->tanggal_absensi,
+                    'matakuliah_id'   => $request->matakuliah_id,
+                ])
+                ->with('success', 'Data kehadiran berhasil disimpan.');
+        }
 }
